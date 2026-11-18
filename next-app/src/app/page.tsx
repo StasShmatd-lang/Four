@@ -39,7 +39,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/logo.png" alt="Stanislav Shmidt" className="brand-mark hero-enter" />
         <div className="text-center hero-enter-delay">
-          <h1 className="display text-4xl font-semibold sm:text-[2.75rem]">Хор аплодисментов</h1>
+          <h1 className="display text-4xl font-semibold sm:text-[2.75rem]">Хор</h1>
           <p className="mx-auto mt-4 max-w-sm text-base leading-relaxed text-[var(--mute)]">
             Две половины зала. Микрофон телефона. Кто громче — тот победил.
           </p>

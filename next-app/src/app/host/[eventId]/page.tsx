@@ -44,7 +44,7 @@ export default function HostPage() {
   const eventId = params.eventId;
   const base = useLinkBase();
   const [token, setToken] = useState<string | null>(null);
-  const [title, setTitle] = useState("Хор аплодисментов");
+  const [title, setTitle] = useState("Хор");
   const [roundSec, setRoundSec] = useState(7);
   const [nameA, setNameA] = useState("Команда А");
   const [nameB, setNameB] = useState("Команда Б");

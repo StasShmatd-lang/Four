@@ -118,7 +118,7 @@ export async function createEvent() {
     id: nanoid(8),
     hostToken: nanoid(18),
     screenToken: nanoid(18),
-    title: "Хор аплодисментов",
+    title: "Хор",
     teams: { a: { ...DEFAULT_A }, b: { ...DEFAULT_B } },
     roundSec: 7,
     phase: "lobby",
@@ -204,7 +204,7 @@ export async function hostAction(
       throw new Error("Настройки только в лобби");
     }
     if (typeof payload?.title === "string") {
-      ev.title = payload.title.trim().slice(0, 80) || "Хор аплодисментов";
+      ev.title = payload.title.trim().slice(0, 80) || "Хор";
     }
     if (payload?.roundSec != null) ev.roundSec = clampRoundSec(payload.roundSec);
     if (payload?.teamA && typeof payload.teamA === "object") {

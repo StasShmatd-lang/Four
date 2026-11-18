@@ -15,7 +15,7 @@ const body = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Хор аплодисментов",
+  title: "Хор",
   description: "Две половины зала соревнуются — кто громче аплодирует",
 };
 
