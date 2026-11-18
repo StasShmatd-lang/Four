@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { BrandFooter } from "@/components/BrandFooter";
 import { CountdownRing } from "@/components/CountdownRing";
 import { DualMeters } from "@/components/DualMeters";
-import { useMicLevel } from "@/hooks/useMicLevel";
+import { useMicLevel, type MicMode } from "@/hooks/useMicLevel";
 import { usePollState } from "@/hooks/usePollState";
 import { readJson } from "@/lib/apiClient";
 import type { PublicState, TeamId } from "@/lib/types";
@@ -62,8 +62,9 @@ export default function JoinPage() {
     [eventId, guestId, guestToken],
   );
   const { state, setState, error } = usePollState(auth, Boolean(auth), 400);
+  const joined = Boolean(guestId && guestToken && state);
   const live = state?.phase === "live";
-  const { level, mode, tapClap } = useMicLevel(Boolean(live));
+  const { level, mode, tapClap, enableMic } = useMicLevel(joined);
 
   // Send clap levels during live — numbers only
   useEffect(() => {
@@ -210,8 +211,9 @@ export default function JoinPage() {
           <div className="panel text-center">
             <p className="display text-xl">Ждём старт</p>
             <p className="mt-2 text-sm text-[var(--mute)]">
-              В зале {state.guestCount}. Ведущий запускает раунд.
+              В зале {state.guestCount}. Сначала включите микрофон — браузер спросит разрешение.
             </p>
+            <MicSetup mode={mode} level={level} color={myColor} onEnable={enableMic} />
             <div className="mt-5">
               <DualMeters teams={state.teams} phase={state.phase} winner={state.winner} />
             </div>
@@ -219,7 +221,10 @@ export default function JoinPage() {
         )}
 
         {state.phase === "countdown" && (
-          <CountdownRing remainingMs={state.remainingMs} label="Приготовьтесь хлопать" />
+          <div className="flex flex-col gap-4">
+            <CountdownRing remainingMs={state.remainingMs} label="Приготовьтесь хлопать" />
+            <MicSetup mode={mode} level={level} color={myColor} onEnable={enableMic} />
+          </div>
         )}
 
         {state.phase === "live" && (
@@ -228,6 +233,11 @@ export default function JoinPage() {
               <div className="display text-5xl tabular-nums">{Math.ceil(state.remainingMs / 1000)}</div>
               <p className="text-sm text-[var(--mute)]">Хлопайте громче!</p>
             </div>
+            {mode !== "mic" && (
+              <button type="button" className="btn-ghost w-full" onClick={() => void enableMic()}>
+                {mode === "asking" ? "Ждём разрешение…" : "Включить микрофон"}
+              </button>
+            )}
             <button
               type="button"
               className={`clap-pad live`}
@@ -243,13 +253,7 @@ export default function JoinPage() {
             <div className="level-bar">
               <span style={{ width: `${level}%`, background: myColor }} />
             </div>
-            <p className="text-center text-xs text-[var(--mute)]">
-              {mode === "mic"
-                ? "Микрофон слушает уровень (запись не сохраняется)"
-                : mode === "denied"
-                  ? "Микрофон закрыт — тапайте «ХЛОП»"
-                  : "Тапайте или разрешите микрофон"}
-            </p>
+            <p className="text-center text-xs text-[var(--mute)]">{micHint(mode)}</p>
           </div>
         )}
 
@@ -282,4 +286,52 @@ function winnerLabel(state: PublicState) {
   if (state.winner === "a") return `Победа: ${state.teams.a.name}`;
   if (state.winner === "b") return `Победа: ${state.teams.b.name}`;
   return "";
+}
+
+function micHint(mode: MicMode) {
+  if (mode === "mic") return "Микрофон слушает громкость. Запись не сохраняется.";
+  if (mode === "denied") return "Микрофон закрыт — тапайте «ХЛОП».";
+  if (mode === "asking") return "В системном окне браузера нажмите «Разрешить».";
+  if (mode === "tap") return "Режим тапа. Можно всё равно включить микрофон.";
+  return "Нажмите «Включить микрофон» или тапайте «ХЛОП».";
+}
+
+function MicSetup({
+  mode,
+  level,
+  color,
+  onEnable,
+}: {
+  mode: MicMode;
+  level: number;
+  color: string;
+  onEnable: () => Promise<boolean>;
+}) {
+  return (
+    <div className="mt-5 space-y-3 text-left">
+      {mode === "mic" ? (
+        <p className="text-center text-sm" style={{ color }}>
+          Микрофон включён — похлопайте, полоска должна двигаться
+        </p>
+      ) : (
+        <button
+          type="button"
+          className="btn-lime w-full"
+          disabled={mode === "asking"}
+          onClick={() => void onEnable()}
+        >
+          {mode === "asking" ? "Ждём разрешение…" : "Включить микрофон"}
+        </button>
+      )}
+      <div className="level-bar">
+        <span style={{ width: `${level}%`, background: color }} />
+      </div>
+      <p className="text-center text-xs text-[var(--mute)]">{micHint(mode)}</p>
+      {mode === "denied" && (
+        <p className="text-center text-xs text-[var(--mute)]">
+          Если окно не появилось: замок в адресной строке → Микрофон → Разрешить → обновить.
+        </p>
+      )}
+    </div>
+  );
 }
